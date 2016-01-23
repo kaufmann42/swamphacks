@@ -1,0 +1,32 @@
+{
+  "name": "swamphacks",
+  "version": "0.1.0",
+  "description": "Swamp Hacks",
+  "main": "server.js",
+  "scripts": {
+    "server": "gulp",
+    "build": "gulp build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/thomasbaldwin/swamphacks.git"
+  },
+  "author": "Thomas Baldwin <thomasbaldwinj@gmail.com>",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/thomasbaldwin/swamphacks/issues"
+  },
+  "homepage": "https://github.com/thomasbaldwin/swamphacks",
+  "devDependencies": {
+    "gulp": "~3.9.0",
+    "gulp-babel": "~5.2.1"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "dotenv": "~1.2.0",
+    "express": "~4.13.3",
+    "jsonwebtoken": "^5.4.1",
+    "mysql": "^2.9.0",
+    "promise-mysql": "^1.1.1"
+  }
+}
