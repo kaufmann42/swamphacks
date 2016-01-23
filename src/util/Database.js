@@ -8,7 +8,7 @@ let Database = {
       host: 'localhost',
       user: 'root',
       password: '91zFzVoh',
-      database: 'apollo'
+      database: 'SwampHacks'
     }).then(function(conn){
       Database.connection = conn;
     });
