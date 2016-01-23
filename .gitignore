@@ -14,6 +14,3 @@ npm-debug.log
 /tmp
 /config/certs
 vendor/cache/ruby
-
-.env*
-!.env.sample
