@@ -145,6 +145,8 @@ let insertPost = function(creatorId, result) {
           }
           price = price.substring(0, i);
           book.price = price;
+        } else {
+          book.price = 50;
         }
       }
     });

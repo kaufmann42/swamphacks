@@ -36,17 +36,5 @@ console.log(
   ENV.NODE_PORT,
   ENV.NODE_ENV
 );
-// scraping();
 
 var intervalID = setInterval(Scraper.retrieve, 15000);
-
-
-// while (true) {
-// 	setTimeout(Scraper.retrieve(), 40000);
-// }
-
-// while (true) {
-// 	setTimeout(function() {
-// 		Scraper.retrieve()
-// 	},40000);
-// }
