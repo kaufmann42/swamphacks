@@ -7,7 +7,7 @@ let Database = {
     mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: '',
+      password: ENV.DATABASE_PASSWORD,
       database: 'SwampHacks'
     }).then(function(conn){
       Database.connection = conn;

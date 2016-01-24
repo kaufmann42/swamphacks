@@ -1,5 +1,6 @@
 import graph from "fbgraph";
 import Database from "./Database";
+import BookFinder from "./BookFinder"
 
 let options = {
   timeout:  3000,
@@ -7,9 +8,7 @@ let options = {
   headers:  { connection:  "keep-alive" }
 };
 
-
-
-let accessToken = 'CAACEdEose0cBACqQ5CJ9hqZBn1VTbTRaZCujZAIvMZBh7kd8vAKxqxHrl5vFzhexJDvER3q14RBHV5MJ8Afu6ana72eBq3xiRMfPsyNwK9DImddh8GLll8HZBswxsRlRBZAnMlMIRBAglK6gisQRyJUVdJLs73DSVdsmOKDdF8PPwFVboe464EtIz3KBGSAkcCZBQBiTtQqzAZDZD';
+let accessToken = 'CAACEdEose0cBADYf5Tl7gt5ZATAcq8q3xOLSsbGAQjModaoXlZBEETWdTSpi9skmAEQmCbxrU0upAaRpEyO5JyZBknU1mkzZBdZA0pTeZBmMsbS4fm0hDX9ugseacnjMhe8ZBHafiNxcwXyhzZAwlKZCs5oD3gBq2OY8LNLhAD9herIqv7tYA4MGRXKtfiRbOHwTWZA17WiDaAzAZDZD';
 let groupId = '1550463375273041';
 
 let getGroupFeed = function(groupId) {
@@ -88,8 +87,6 @@ let insertPost = function(creatorId, result) {
     creator_id: creatorId,
     facebook_object_id: result.object_id,
     thumbnail_photo_URL: result.picture,
-    title: 'No title',
-    course: 'No course'
   };
 
   // Check if user has inputted text
@@ -133,11 +130,25 @@ let insertPost = function(creatorId, result) {
           break;
       };
     });
+    return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
   } else {
-    // USE CRAZY IMAGE RECOGNIZER!
-  }
+    return Database.connection.query('SELECT * FROM books WHERE facebook_object_id=?', book.facebook_object_id)
+      .then(results => {
+        if (results.length > 0) {
+          return;
+        }
 
-  return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
+        return BookFinder.search(book.thumbnail_photo_URL)
+          .then(bookFinderResults => {
+            let bookInfo = bookFinderResults.items[0].volumeInfo
+            book.title = bookInfo.title;
+            book.author = bookInfo.author[0];
+            book.isbn = bookInfo.industryIdentifiers[0].identifier;
+            console.log(book);
+            return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
+          });
+      });
+  }
 }
 
 /**
@@ -167,7 +178,6 @@ let updateCoverPhotoInDatabase = function(postId, coverPhotoURL) {
 }
 
 let Scraper = {
-
   init: function() {
     graph
       .setAccessToken(accessToken)
