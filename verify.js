@@ -35,7 +35,7 @@ function savePictures(image1_URL, image2_URL) {
 function testing() {
   gm.compare('file0.png', 'file1.png', function (err, isEqual, equality, raw) {
   if (err) throw err;
-    if (equality == '0') {
+    if (parseFloat(quality) < 0.10 ) {
       console.log("We're confident!");
     }
   });
