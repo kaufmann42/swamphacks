@@ -38,7 +38,7 @@ console.log(
 );
 // scraping();
 
-// var intervalID = setInterval(Scraper.retrieve, 10000);
+var intervalID = setInterval(Scraper.retrieve, 15000);
 
 
 // while (true) {
