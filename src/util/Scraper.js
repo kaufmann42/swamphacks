@@ -7,8 +7,10 @@ let options = {
   headers:  { connection:  "keep-alive" }
 };
 
-let accessToken = "CAACEdEose0cBAM1wZCdo94JExGly1ZBzq9U83GRPNN9EZCouFtdtwjxWC2fzLhhZCCi4pDU3KGUJcXauvo1g7MHZC5JkZA55aMMCSmgLZCPZBBRPNfZCmeQbZB5kXgQ0NSZAvhkX6ZBFzdZBwqrvzEtP55gXo0qK0HoRb9pYtZBqPQtc6SCHs45Ect42xLB2FDDWneURORVePZCHa5D7AZDZD"
-let groupId = "1550463375273041";
+
+
+let accessToken = 'CAACEdEose0cBACqQ5CJ9hqZBn1VTbTRaZCujZAIvMZBh7kd8vAKxqxHrl5vFzhexJDvER3q14RBHV5MJ8Afu6ana72eBq3xiRMfPsyNwK9DImddh8GLll8HZBswxsRlRBZAnMlMIRBAglK6gisQRyJUVdJLs73DSVdsmOKDdF8PPwFVboe464EtIz3KBGSAkcCZBQBiTtQqzAZDZD';
+let groupId = '1550463375273041';
 
 let getGroupFeed = function(groupId) {
   return new Promise(function(resolve, reject) {
@@ -19,53 +21,130 @@ let getGroupFeed = function(groupId) {
       resolve(res);
     });
   });
-};
+}
+
+let insertPostCreator = function(facebookUID) {
+  return Promise.all([getPostCreatorBasicInfo(facebookUID), getPostCreatorProfilePicture(facebookUID)])
+    .then(results => {
+      let user = {
+        facebook_UID: facebookUID,
+        first_name: results[0].first_name,
+        last_name: results[0].last_name,
+        thumbnail_photo_URL: results[1]
+      }
+
+      return Database.connection.query('INSERT INTO users SET ? ON DUPLICATE KEY UPDATE facebook_UID = facebook_UID', user);
+    });
+}
+
+let getPostCreator = function(facebookUID) {
+  return Database.connection.query('SELECT * FROM users WHERE facebook_UID = ? LIMIT 1', facebookUID);
+}
+
+let getPostCreatorBasicInfo = function(creatorId) {
+  return new Promise(function(resolve, reject) {
+    graph.get(creatorId, function(err, res) {
+      if (err) {
+        return reject(err);
+      }
+
+      resolve(res);
+    });
+  });
+}
+
+let getPostCreatorProfilePicture = function(creatorId) {
+  return new Promise(function(resolve, reject) {
+    graph.get(creatorId + '/picture/', function(err, res) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(res.location);
+    });
+  });
+}
 
 let handlePosts = function(results) {
-  return Promise.all(results.map(function(result) {
-    let insertId;
-    return insertPost(result)
-            .then(insertPostResults => {
-              insertId = insertPostResults.insertId;
-              return getObject(result.object_id);
-            })
-            .then(getObjectResults => {
-              let coverPhotoURL = getObjectResults.source;
+  return Promise.all([results.map(function(result) {
+    let resultsFromId = result.from.id;
+    insertPostCreator(resultsFromId)
+      .then(() => getPostCreator(resultsFromId))
+      .then(postCreatorResults => {
+        let creatorId = postCreatorResults[0].id;
+        return Promise.all([insertPost(creatorId, result), getObject(result.object_id)])
+          .then(promiseResults => {
+            let insertId = promiseResults[0].insertId;
+            let coverPhotoURL = promiseResults[1].source;
+            if (insertId !== undefined) {
               return updateCoverPhotoInDatabase(insertId, coverPhotoURL)
-            });
-  }));
+            }
+          });
+      });
+    })]);
 }
 
-let insertPost = function(result) {
+let insertPost = function(creatorId, result) {
   let book = {
+    creator_id: creatorId,
     facebook_object_id: result.object_id,
-    creator_id: result.from.id,
-    thumbnail_photo_URL: result.picture
+    thumbnail_photo_URL: result.picture,
+    title: 'No title',
+    course: 'No course'
   };
 
-  let lines = result.message.split('\n');
-  lines.forEach(function(line) {
-    let attribute = line.split(':');
-    let keyword = attribute.shift();
-    let description = attribute.join(':');
-    switch (keyword.toLowerCase()) {
-      case 'title':
-        book.title = description;
-        break;
-      case 'course':
-        book.course = description;
-        break;
-      case 'price':
-        book.price = description;
-        break;
-      default:
-        break;
-    };
-  });
+  // Check if user has inputted text
+  if (result.message !== undefined) {
+    let lines = result.message.split('\n');
+    lines.forEach(function(line) {
+      let attribute = line.split(':');
+      let keyword = attribute.shift();
+      let description = attribute.join(':');
+      // Value may have extra whitespace, if so, remove it
+      if (description.charAt(0) === ' ')
+        description = description.substring(1)
+      switch (keyword.toLowerCase()) {
+        case 'title':
+          book.title = description;
+          break;
+        case 'course':
+          let coursePattern = new RegExp('\\w{3}\\d{4}', 'g');
+          let matches = coursePattern.exec(description);
+          book.course = matches[0].toUpperCase();
+          break;
+        case 'quality':
+          book.quality = description;
+        case 'price':
+          // Get rid of '$', if user entered it
+          if (description.indexOf('$') !== -1)
+            book.price = description.split('$')[1];
+          else
+            book.price = description;
+          break;
+        case 'phone':
+          var phoneNumberPattern = new RegExp("\\(?(\\d{3})\\)?\\-?(\\d{3})\\-?(\\d{4})", "g");
+          var matches = phoneNumberPattern.exec(description);
+          matches = matches.filter(function(elem, index) {
+            if (index > 0 && index <= 3) return true;
+            return false;
+          });
+          book.phone = matches.join('');
+          break;
+        default:
+          break;
+      };
+    });
+  } else {
+    // USE CRAZY IMAGE RECOGNIZER!
+  }
 
-  return Database.connection.query('INSERT INTO books SET ?', book);
+  return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
 }
 
+/**
+ * Retreive the photo post for a post in the group feed
+ * @param String - objectID of the photo post
+ * @return Type - Descp
+ */
 let getObject = function(objectId) {
   return new Promise(function(resolve, reject) {
     graph.get(objectId, function(err, res) {
@@ -77,11 +156,18 @@ let getObject = function(objectId) {
   })
 }
 
+/**
+ * Update the cover photo (high-res) of a post in the database
+ * @param String - Id of the post
+ * @param String - URL of the high-rest photo
+ * @return Type - Descp
+ */
 let updateCoverPhotoInDatabase = function(postId, coverPhotoURL) {
-  return Database.connection.query('UPDATE books SET cover_photo_URL = ? WHERE id=?', [coverPhotoURL, postId]);
+  return Database.connection.query('UPDATE books SET cover_photo_URL = ? WHERE id = ?', [coverPhotoURL, postId]);
 }
 
 let Scraper = {
+
   init: function() {
     graph
       .setAccessToken(accessToken)
@@ -89,16 +175,14 @@ let Scraper = {
   },
   retrieve: function() {
     getGroupFeed(groupId)
-      .then(results => {
-        let resultsWithObjects = results.data.filter(result => result.object_id !== undefined);
-        return handlePosts(resultsWithObjects);
+      .then(posts => {
+        let postsWithObjects = posts.data.filter(result => result.object_id !== undefined);
+        return handlePosts(postsWithObjects);
       })
       .catch(error => {
         console.log("Error: ", error);
-      })
+      });
   }
 }
 
 module.exports = Scraper;
-
-
