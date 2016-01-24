@@ -8,30 +8,6 @@ var gm = require('gm');
 
 var image1 = 'https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084';
 var image2 = 'https://books.google.com/books/content?id=3VOnAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api';
-, options
-
-options = {
-  host: 'www.google.com'
-, port: 80
-, path: '/images/logos/ps_logo2.png'
-}
-
-var request = http.get(options, function(res){
-  var imagedata = ''
-  res.setEncoding('binary')
-
-  res.on('data', function(chunk){
-      imagedata += chunk
-  })
-
-  res.on('end', function(){
-      fs.writeFile('logo.png', imagedata, 'binary', function(err){
-          if (err) throw err
-          console.log('File saved.')
-      })
-  })
-
-})
 
 function findBookName(image_URL) {
   var result = '';
