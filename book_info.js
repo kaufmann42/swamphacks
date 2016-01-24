@@ -1,6 +1,44 @@
 const https = require('https');
 const http = require('http');
 const querystring = require('querystring');
+const resemble = require('node-resemble-js');
+const fs = require('fs');
+var path = require('path');
+
+var image1 = 'https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084';
+var image2 = 'https://books.google.com/books/content?id=3VOnAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api';
+
+var request = https.get(image1, function(res){
+    var imagedata = ''
+    res.setEncoding('binary')
+
+    res.on('data', function(chunk){
+        imagedata += chunk
+    })
+
+    res.on('end', function(){
+        fs.writeFile(path.join(__dirname, 'image1'), imagedata, 'binary', function(err){
+            if (err) throw err;
+            console.log('File saved.')
+            comparePictures();
+        })
+    })
+
+})
+
+function comparePictures() {
+  var api = resemble(path.join(__dirname, 'image1')).onComplete(function(data){
+      console.log(data);
+      /*
+      {
+        red: 255,
+        green: 255,
+        blue: 255,
+        brightness: 255
+      }
+      */
+  });
+}
 
 function findBookName(image_URL) {
   var result = '';
@@ -98,19 +136,3 @@ function findBook(search) {
 };
 
 // findBookName('https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084');
-
-confirmBook();
-
-function confirmBook(argument) {
-  var diff = resemble('https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084').compareTo('https://books.google.com/books/content?id=3VOnAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api').ignoreColors().onComplete(function(data){
-    console.log(data);
-    /*
-    {
-      misMatchPercentage : 100, // %
-      isSameDimensions: true, // or false
-      dimensionDifference: { width: 0, height: -1 }, // defined if dimensions are not the same
-      getImageDataUrl: function(){}
-    }
-    */
-  });
-}
