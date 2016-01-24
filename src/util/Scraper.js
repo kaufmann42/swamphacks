@@ -14,7 +14,6 @@ let getGroupFeed = function(groupId) {
   return new Promise(function(resolve, reject) {
     graph.get(groupId + '/feed', function(err, res) {
       if (err) {
-        console.log(err);
         return reject(err);
       }
       resolve(res);
@@ -41,42 +40,34 @@ let getObject = function(objectId) {
 }
 
 let insertObjectIntoDatabase = function(object) {
-  console.log(object);
-
-  let keywords = [
-    "title:",
-    "Title:",
-    "course:",
-    "Course:"
-  ];
-
-  // let currentWord = "";
-  // for (var i=0; i<object.title.length; i++ {
-  //   if currentWord
-  //     title = title
-
-
-  // }
-
   let book = {
-    creator_id: object.from.id,
     facebook_object_id: object.id,
-    course: "COP4600",
-    price: 45,
-    imageURL: object.images[0].source
+    creator_id: object.from.id,
+    cover_photo_URL: object.images[0].source
   };
-  book.title = object.name.split('\n')[0].substring(7);
-  // for (var keyword in keywords) {
-  //   console.log(keywords[keyword]);
-  //   console.log(object.name.split(keywords[keyword]));
 
-  // }
-  console.log(object.name);
+  let lines = object.name.split('\n');
+  lines.forEach(function(line) {
+    let attribute = line.split(':');
+    let keyword = attribute.shift();
+    let description = attribute.join(':');
 
+    switch (keyword.toLowerCase()) {
+      case 'title':
+        book.title = description;
+        break;
+      case 'course':
+        book.course = description;
+        break;
+      case 'price':
+        book.price = description;
+        break;
+      default:
+        break;
+    };
+  });
 
-
-  return "";
-  // return Database.connection.query('INSERT INTO books SET ?', book);
+  return Database.connection.query('INSERT INTO books SET ?', book);
 }
 
 let Scraper = {
@@ -87,11 +78,16 @@ let Scraper = {
   },
   retrieve: function() {
     getGroupFeed(groupId)
-    .then(results => {
-      let resultsWithObjects = results.data.filter(result => result.object_id !== undefined);
-      return getFeedObjects(resultsWithObjects);
-    });
+      .then(results => {
+        let resultsWithObjects = results.data.filter(result => result.object_id !== undefined);
+        return getFeedObjects(resultsWithObjects);
+      })
+      .catch(error => {
+        console.log("Error: ", error);
+      })
   }
 }
 
 module.exports = Scraper;
+
+

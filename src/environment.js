@@ -1,5 +1,3 @@
-"use strict";
-
 var env = require("./lib/env");
 
 // Load environment before doing anything
