@@ -7,6 +7,8 @@ https.globalAgent.maxSockets = 1024;
 let express = require('express');
 let app = express();
 
+let _ = require('underscore');
+
 //setup Database
 let Database = require("./util/Database").init()
 
@@ -23,7 +25,15 @@ routes(app);
 
 let Scraper = require('./util/Scraper');
 Scraper.init()
-Scraper.retrieve();
+
+
+
+let scraping = function() {
+	console.log('first!');
+	Scraper.retrieve().then(scraping);
+};
+
+
 
 app.listen(ENV.NODE_PORT);
 
@@ -33,3 +43,17 @@ console.log(
   ENV.NODE_PORT,
   ENV.NODE_ENV
 );
+// scraping();
+
+// var intervalID = setInterval(Scraper.retrieve, 10000);
+
+
+// while (true) {
+// 	setTimeout(Scraper.retrieve(), 40000);
+// }
+
+// while (true) {
+// 	setTimeout(function() {
+// 		Scraper.retrieve()
+// 	},40000);
+// }
