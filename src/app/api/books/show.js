@@ -1,6 +1,8 @@
 import Database from "../../../util/Database";
 import send from "../../../util/send";
 
+let _ = require('underscore');
+
 let getBook = function(bookId) {
 	console.log(bookId);
 	return Database.connection.query('SELECT \
@@ -9,23 +11,30 @@ let getBook = function(bookId) {
 		b.price, \
 		b.quality, \
 		b.phone, \
-		b.thumbnail_photo_URL, \
+		b.thumbnail_photo_URL AS book_thumbnail_photo_URL, \
 		b.cover_photo_URL, \
 		u.first_name, \
-		u.last_name \
+		u.last_name, \
+		u.thumbnail_photo_URL AS user_thumbnail_photo_URL \
 		FROM books b \
 		LEFT JOIN users u ON u.id = b.creator_id \
-		WHERE b.id = ?', [bookId]);
+		WHERE b.id = ?', bookId);
 }
 
 let formatJSON = function(results) {
   console.log(results);
-  let bookResult = results;
-
+  let bookResult = results[0];
+  let userKeywords = ['first_name', 'last_name', 'phone', 'user_thumbnail_photo_URL'];
   var creator = {};
+
   for (var book in bookResult) {
-    console.log(bookResult[book]);
+	if (_.contains(userKeywords, book)) {
+		creator[book] = bookResult[book];
+		bookResult[book] = undefined;
+	}
   }
+
+  bookResult.creator = creator;
 
   return bookResult;
 }

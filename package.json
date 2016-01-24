@@ -28,6 +28,7 @@
     "fbgraph": "^1.1.0",
     "jsonwebtoken": "^5.4.1",
     "mysql": "^2.9.0",
-    "promise-mysql": "^1.1.1"
+    "promise-mysql": "^1.1.1",
+    "underscore": "^1.8.3"
   }
 }
