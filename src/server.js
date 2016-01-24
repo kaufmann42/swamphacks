@@ -25,14 +25,7 @@ routes(app);
 
 let Scraper = require('./util/Scraper');
 Scraper.init()
-
-
-
-let scraping = function() {
-	console.log('first!');
-	Scraper.retrieve().then(scraping);
-};
-
+Scraper.retrieve();
 
 
 app.listen(ENV.NODE_PORT);

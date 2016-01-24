@@ -8,7 +8,7 @@ let options = {
   headers:  { connection:  "keep-alive" }
 };
 
-let accessToken = 'CAACEdEose0cBADYf5Tl7gt5ZATAcq8q3xOLSsbGAQjModaoXlZBEETWdTSpi9skmAEQmCbxrU0upAaRpEyO5JyZBknU1mkzZBdZA0pTeZBmMsbS4fm0hDX9ugseacnjMhe8ZBHafiNxcwXyhzZAwlKZCs5oD3gBq2OY8LNLhAD9herIqv7tYA4MGRXKtfiRbOHwTWZA17WiDaAzAZDZD';
+let accessToken = 'CAACEdEose0cBABaA7KIWDz7J7jA2MZAkZAmRGLhPZA2LoJZBvDIVDB8WJZAifYprxsmnsyTOALkdCWV5koe8qskV6ECKYMUvOLimhgoLyHuJufQyCnFZAFtWVKKI7BDrIRtoLzfWuHLgnf4UPF2vdS6ZAqmZAup6rBWsb0ICzGZA8fpR3L6X9Pml1gZB2ZAee8aiplpNWhex2lQewZDZD';
 let groupId = '1550463375273041';
 
 let getGroupFeed = function(groupId) {
@@ -46,7 +46,6 @@ let getPostCreatorBasicInfo = function(creatorId) {
       if (err) {
         return reject(err);
       }
-
       resolve(res);
     });
   });
@@ -86,7 +85,7 @@ let insertPost = function(creatorId, result) {
   let book = {
     creator_id: creatorId,
     facebook_object_id: result.object_id,
-    thumbnail_photo_URL: result.picture,
+    thumbnail_photo_URL: result.picture
   };
 
   // Check if user has inputted text
@@ -109,7 +108,9 @@ let insertPost = function(creatorId, result) {
           book.course = matches[0].toUpperCase();
           break;
         case 'quality':
+          console.log(description);
           book.quality = description;
+          break;
         case 'price':
           // Get rid of '$', if user entered it
           if (description.indexOf('$') !== -1)
@@ -129,22 +130,42 @@ let insertPost = function(creatorId, result) {
         default:
           break;
       };
+
+      // Check if user entered price as a blob of text
+      //  "...$30..."
+      if (book.price == null) {
+        if (result.message.indexOf('$') !== -1) {
+          let price = result.message.split('$')[1];
+          let i = 0;
+          for (; i < price.length; i++) {
+            if (price[i] >= '0' && price[i] <= '9')
+              continue;
+            else
+              break;
+          }
+          price = price.substring(0, i);
+          book.price = price;
+        }
+      }
     });
+
     return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
+
   } else {
     return Database.connection.query('SELECT * FROM books WHERE facebook_object_id=?', book.facebook_object_id)
       .then(results => {
         if (results.length > 0) {
           return;
         }
-
         return BookFinder.search(book.thumbnail_photo_URL)
           .then(bookFinderResults => {
-            let bookInfo = bookFinderResults.items[0].volumeInfo
+            console.log("Book results: ", bookFinderResults);
+            let bookInfo = bookFinderResults.items[0].volumeInfo;
+            console.log("In depth results: ", bookInfo);
             book.title = bookInfo.title;
-            book.author = bookInfo.author[0];
+            book.author = bookInfo.authors[0];
             book.isbn = bookInfo.industryIdentifiers[0].identifier;
-            console.log(book);
+            console.log("Should be a book: ", book);
             return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
           });
       });
@@ -184,6 +205,7 @@ let Scraper = {
       .setOptions(options)
   },
   retrieve: function() {
+    console.log('hi');
     getGroupFeed(groupId)
       .then(posts => {
         let postsWithObjects = posts.data.filter(result => result.object_id !== undefined);
