@@ -149,10 +149,16 @@ let insertPost = function(creatorId, result) {
       }
     });
 
-    return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
+    if (book.title !== undefined) {
+      return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
+    }
+  }
 
-  } else {
-    return Database.connection.query('SELECT * FROM books WHERE facebook_object_id=?', book.facebook_object_id)
+  return getBookFinderData(book);
+}
+
+let getBookFinderData = function(book) {
+  return Database.connection.query('SELECT * FROM books WHERE facebook_object_id=?', book.facebook_object_id)
       .then(results => {
         if (results.length > 0) {
           return;
@@ -169,7 +175,6 @@ let insertPost = function(creatorId, result) {
             return Database.connection.query('INSERT INTO books SET ? ON DUPLICATE KEY UPDATE ?', [book, book]);
           });
       });
-  }
 }
 
 /**
