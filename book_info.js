@@ -90,9 +90,27 @@ function findBook(search) {
     res.on('end', function() {
       //console.log(responseString);
       var json = JSON.parse(responseString);
-    	console.log(json["items"][0].volumeInfo);
+      for (var i = 0; i < 5; i++) {
+        console.log(json["items"][i].volumeInfo);
+      }
     });
   });
 };
 
-findBookName('http://ecx.images-amazon.com/images/I/51szD9HC9pL._SX395_BO1,204,203,200_.jpg');
+// findBookName('https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084');
+
+confirmBook();
+
+function confirmBook(argument) {
+  var diff = resemble('https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084').compareTo('https://books.google.com/books/content?id=3VOnAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api').ignoreColors().onComplete(function(data){
+    console.log(data);
+    /*
+    {
+      misMatchPercentage : 100, // %
+      isSameDimensions: true, // or false
+      dimensionDifference: { width: 0, height: -1 }, // defined if dimensions are not the same
+      getImageDataUrl: function(){}
+    }
+    */
+  });
+}
