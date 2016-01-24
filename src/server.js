@@ -21,6 +21,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 import routes from "./app/routes";
 routes(app);
 
+let Scraper = require('./util/Scraper');
+Scraper.init()
+Scraper.retrieve();
+
 app.listen(ENV.NODE_PORT);
 
 console.log(

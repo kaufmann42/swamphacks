@@ -2,12 +2,12 @@ import mysql from 'promise-mysql';
 
 let Database = {
   connection: null,
-  
+
   init: function() {
     mysql.createConnection({
       host: 'localhost',
       user: 'root',
-      password: '91zFzVoh',
+      password: '',
       database: 'SwampHacks'
     }).then(function(conn){
       Database.connection = conn;
