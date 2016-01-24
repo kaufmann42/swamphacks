@@ -2,11 +2,6 @@ var fs = require('fs');
 var https = require('https');
 var gm = require('gm');
 
-var image1 = 'https://scontent-mia1-1.xx.fbcdn.net/hphotos-xfl1/v/t1.0-9/12552541_1190510354310388_8394298973295365965_n.jpg?oh=7755e987bdc6a0d5aa2c701dda6ced5f&oe=5700D084';
-var image2 = 'https://books.google.com/books/content?id=3VOnAQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api';
-var pictures = [image1, image2];
-var point = 0;
-
 function getPictures(pictures) {
   for (var i in pictures) {
     var request = https.get(pictures[i], function(res){
@@ -27,7 +22,10 @@ function getPictures(pictures) {
   }
 }
 
-function savePictures(pictures) {
+function savePictures(image1_URL, image2_URL) {
+  var image1 = image1_URL;
+  var image2 = image2_URL;
+  var pictures = [image1, image2];
   getPictures(pictures);
   setTimeout(function () {
     testing();
@@ -42,5 +40,3 @@ function testing() {
     }
   });
 }
-
-savePictures(pictures);
