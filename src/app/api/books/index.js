@@ -20,7 +20,7 @@ let getAllBooks = function() {
     u.facebook_UID \
     FROM books b \
     LEFT JOIN users u ON u.id = b.creator_id \
-    ');
+    ORDER BY time_created DESC');
 }
 
 let formatJSON = function(results) {
